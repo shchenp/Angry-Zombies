@@ -3,9 +3,9 @@
 public class TNT : MonoBehaviour
 {
     [SerializeField] 
-    public GameObject _explosionPrefab;
+    private GameObject _explosionPrefab;
     [SerializeField] 
-    public GameObject _explosionEffectPrefab;
+    private GameObject _explosionEffectPrefab;
     [SerializeField]
     private AudioSource _explosionSound;
 
