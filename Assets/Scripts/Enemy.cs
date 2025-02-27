@@ -1,7 +1,10 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 
 public class Enemy : MonoBehaviour
 {
+    public UnityEvent EnemyDied;
+    
     [SerializeField]
     private GameObject _explosionPrefab;
     [SerializeField] 
@@ -52,6 +55,8 @@ public class Enemy : MonoBehaviour
         CreateExplosion();
         // ПРоигрываем звук смерти зомби.
         PlayDeathSound();
+        
+        EnemyDied?.Invoke();
         // Разрушаем объект зомби.
         Destroy(gameObject);
     }
