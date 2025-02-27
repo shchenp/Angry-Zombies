@@ -22,13 +22,10 @@ public class Skull : MonoBehaviour
     
     private Camera _mainCamera;
     private bool _isDragging;
-    private Vector3 _trajectoryRendererStartPosition;
 
     private void Awake()
     {
         _mainCamera = Camera.main;
-        
-        _trajectoryRendererStartPosition = transform.position;
     }
 
     private void Update()
@@ -46,7 +43,7 @@ public class Skull : MonoBehaviour
                 OnDragging?.Invoke(_isDragging);
             }
         }
-
+        
         if (_isDragging)
         {
             var mousePosition = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -56,7 +53,7 @@ public class Skull : MonoBehaviour
             
             var direction = mousePosition - borderCenter;
             var distance = direction.magnitude;
-            
+
             var velocity = -direction.normalized * _force;
 
             if (distance > _rangeTriggerCollider.radius)
@@ -73,7 +70,7 @@ public class Skull : MonoBehaviour
                 velocity *= distance;
             }
             
-            _trajectoryRenderer.DrawTrajectory(_trajectoryRendererStartPosition, velocity);
+            _trajectoryRenderer.DrawTrajectory(transform.position, velocity);
         }
         
         if (Input.GetMouseButtonUp(0) && _isDragging)
@@ -84,7 +81,12 @@ public class Skull : MonoBehaviour
             OnDragging?.Invoke(_isDragging);
             
             _rigidbody.gravityScale = 1;
-            
+
+
+            var direction = transform.position - _rangeTriggerCollider.transform.position;
+            var velocity = -direction.normalized * (direction.magnitude * _force);
+            _rigidbody.velocity = velocity;
+
             _trajectoryRenderer.HideTrajectory();
         }
     }
