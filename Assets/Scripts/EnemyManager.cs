@@ -5,6 +5,7 @@ using UnityEngine.Events;
 public class EnemyManager : MonoBehaviour
 {
     public UnityEvent<int> SetEnemyCountEvent;
+    public UnityEvent OnEnemiesDied;
 
     [SerializeField] 
     private List<Enemy> _enemies;
@@ -19,14 +20,6 @@ public class EnemyManager : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
-    {
-        foreach (var enemy in _enemies)
-        {
-            enemy.EnemyDied.RemoveListener(DecreaseCount);
-        }
-    }
-
     private void Start()
     {
         _count = transform.childCount;
@@ -37,5 +30,10 @@ public class EnemyManager : MonoBehaviour
     {
         _count--;
         SetEnemyCountEvent?.Invoke(_count);
+
+        if (_count == 0)
+        {
+            OnEnemiesDied?.Invoke();
+        }
     }
 }

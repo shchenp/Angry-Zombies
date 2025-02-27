@@ -70,4 +70,9 @@ public class Enemy : MonoBehaviour
     {
         Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
     }
+
+    private void OnDestroy()
+    {
+        EnemyDied.RemoveAllListeners();
+    }
 }
