@@ -14,12 +14,21 @@ public class Skull : MonoBehaviour
     [SerializeField]
     private CircleCollider2D _rangeTriggerCollider;
     
+    [SerializeField] 
+    private TrajectoryRenderer _trajectoryRenderer;
+
+    [SerializeField] 
+    private float _force;
+    
     private Camera _mainCamera;
     private bool _isDragging;
+    private Vector3 _trajectoryRendererStartPosition;
 
     private void Awake()
     {
         _mainCamera = Camera.main;
+        
+        _trajectoryRendererStartPosition = transform.position;
     }
 
     private void Update()
@@ -47,16 +56,24 @@ public class Skull : MonoBehaviour
             
             var direction = mousePosition - borderCenter;
             var distance = direction.magnitude;
+            
+            var velocity = -direction.normalized * _force;
 
             if (distance > _rangeTriggerCollider.radius)
             {
                 direction = direction.normalized * (_rangeTriggerCollider.radius);
                 transform.position = borderCenter + direction;
+
+                velocity *= _rangeTriggerCollider.radius;
             }
             else
             {
                 transform.position = mousePosition;
+
+                velocity *= distance;
             }
+            
+            _trajectoryRenderer.DrawTrajectory(_trajectoryRendererStartPosition, velocity);
         }
         
         if (Input.GetMouseButtonUp(0) && _isDragging)
@@ -67,6 +84,8 @@ public class Skull : MonoBehaviour
             OnDragging?.Invoke(_isDragging);
             
             _rigidbody.gravityScale = 1;
+            
+            _trajectoryRenderer.HideTrajectory();
         }
     }
 }
