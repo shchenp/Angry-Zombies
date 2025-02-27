@@ -6,10 +6,44 @@ public class Enemy : MonoBehaviour
     private GameObject _explosionPrefab;
     [SerializeField] 
     private AudioClip _deathSound;
+    [SerializeField]
+    private Rigidbody2D _rigidbody;
+    [SerializeField]
+    private float _maxVelocity;
+    [SerializeField]
+    private float _rotationThreshold;
+
+    private float _startRotation;
+
+    private void Start()
+    {
+        _startRotation = transform.eulerAngles.z;
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // TODO: Напишите логику уничтожения зомби тут
+        if (collision.collider.CompareTag(GlobalConstants.SKULL_TAG))
+        {
+            Die();
+            
+            return;
+        }
+
+        if (_rigidbody.velocity.magnitude >= _maxVelocity)
+        {
+            Die();
+        }
+    }
+
+    private void Update()
+    {
+        var currentRotation = transform.eulerAngles.z;
+        var rotationDifference = Mathf.Abs(Mathf.DeltaAngle(currentRotation, _startRotation));
+        
+        if (rotationDifference > _rotationThreshold)
+        {
+            Die();
+        }
     }
 
     private void Die()
