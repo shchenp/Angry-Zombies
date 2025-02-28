@@ -30,7 +30,7 @@ public class Skull : MonoBehaviour
     private Vector3 _startPosition;
     private VelocityCalculator _velocityCalculator;
     private bool _isDragging;
-    private bool _isFlying;
+    private SkullState _currentState;
 
     private void Awake()
     {
@@ -38,22 +38,48 @@ public class Skull : MonoBehaviour
         _startPosition = transform.position;
 
         _velocityCalculator = new VelocityCalculator(_mainCamera, _rangeTriggerCollider, _force);
+        _currentState = SkullState.Idle;
     }
 
     private void Update()
     {
-        // Полет снаряда
-        if (_isFlying)
+        switch (_currentState)
         {
-            if (_rigidbody.velocity.magnitude < _minVelocity)
-            {
-                ResetSkull();
-            }
-            
-            return;
+            case SkullState.Idle:
+                Idle();
+                break;
+            case SkullState.Aiming:
+                Aim();
+                break;
+            case SkullState.Flying:
+                Fly();
+                break;
         }
-        
-        // Начало прицеливания
+    }
+
+    private void Fly()
+    {
+        if (_isDragging)
+        {
+            _isDragging = false;
+            OnDragging?.Invoke(_isDragging);
+
+            _rigidbody.gravityScale = 1;
+            _rigidbody.velocity = _velocityCalculator.CalculateThrowVelocity(transform);
+
+            _trajectoryRenderer.HideTrajectory();
+            _audioPlayer.PlayThrowSound();
+        }
+
+        if (_rigidbody.velocity.magnitude < _minVelocity)
+        {
+            ResetSkull();
+            _currentState = SkullState.Idle;
+        }
+    }
+
+    private void Idle()
+    {
         if (Input.GetMouseButtonDown(0))
         {
             var mousePosition = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -61,41 +87,33 @@ public class Skull : MonoBehaviour
 
             if (hitInfo.collider == _skullCollider)
             {
-                _audioPlayer.PlayRubberSound();
-                _isDragging = true;
-                OnDragging?.Invoke(_isDragging);
+                _currentState = SkullState.Aiming;
             }
         }
-        
-        // Прицеливание
-        if (_isDragging)
+    }
+
+    private void Aim()
+    {
+        if (!_isDragging)
+        {
+            _audioPlayer.PlayRubberSound();
+            _isDragging = true;
+            OnDragging?.Invoke(_isDragging);
+        }
+        else
         {
             var velocity = _velocityCalculator.CalculateThrowVelocity(transform);
-
             _trajectoryRenderer.DrawTrajectory(transform.position, velocity);
         }
-        
-        // Начало полета
-        if (Input.GetMouseButtonUp(0) && _isDragging)
+
+        if (Input.GetMouseButtonUp(0))
         {
-            _isDragging = false;
-            _isFlying = true;
-            OnDragging?.Invoke(_isDragging);
-            
-            _rigidbody.gravityScale = 1;
-
-
-           _rigidbody.velocity = _velocityCalculator.CalculateThrowVelocity(transform);
-
-           _trajectoryRenderer.HideTrajectory();
-            
-           _audioPlayer.PlayThrowSound();
+            _currentState = SkullState.Flying;
         }
     }
 
     private void ResetSkull()
     {
-        _isFlying = false;
         transform.position = _startPosition;
         _rigidbody.rotation = 0;
         _rigidbody.velocity = Vector2.zero;
