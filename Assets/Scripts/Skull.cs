@@ -61,11 +61,10 @@ public class Skull : MonoBehaviour
 
             if (hitInfo.collider == _skullCollider)
             {
+                _audioPlayer.PlayRubberSound();
                 _isDragging = true;
                 OnDragging?.Invoke(_isDragging);
             }
-            
-            _audioPlayer.PlayRubberSound();
         }
         
         // Прицеливание
