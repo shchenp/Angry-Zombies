@@ -16,20 +16,42 @@ public class Skull : MonoBehaviour
     
     [SerializeField] 
     private TrajectoryRenderer _trajectoryRenderer;
+    
+    [SerializeField]
+    private AudioSource _rubberSound;
+    
+    [SerializeField]
+    private AudioSource _throwSound;
 
     [SerializeField] 
     private float _force;
+
+    [SerializeField] 
+    private float _minVelocity;
     
     private Camera _mainCamera;
+    private Vector3 _startPosition;
     private bool _isDragging;
+    private bool _isFlying;
 
     private void Awake()
     {
         _mainCamera = Camera.main;
+        _startPosition = transform.position;
     }
 
     private void Update()
     {
+        if (_isFlying)
+        {
+            if (_rigidbody.velocity.magnitude < _minVelocity)
+            {
+                ResetSkull();
+            }
+            
+            return;
+        }
+        
         if (Input.GetMouseButtonDown(0))
         {
             var mousePosition = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -42,6 +64,8 @@ public class Skull : MonoBehaviour
                 _isDragging = true;
                 OnDragging?.Invoke(_isDragging);
             }
+            
+            PlayRubberSound();
         }
         
         if (_isDragging)
@@ -78,6 +102,7 @@ public class Skull : MonoBehaviour
             //todo Отрефакторить эту часть
             
             _isDragging = false;
+            _isFlying = true;
             OnDragging?.Invoke(_isDragging);
             
             _rigidbody.gravityScale = 1;
@@ -88,6 +113,36 @@ public class Skull : MonoBehaviour
             _rigidbody.velocity = velocity;
 
             _trajectoryRenderer.HideTrajectory();
+            
+            PlayThrowSound();
         }
+    }
+
+    private void ResetSkull()
+    {
+        _isFlying = false;
+        transform.position = _startPosition;
+        _rigidbody.rotation = 0;
+        _rigidbody.velocity = Vector2.zero;
+        _rigidbody.angularVelocity = 0;
+        _rigidbody.gravityScale = 0;
+    }
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        if (other.collider.CompareTag(GlobalConstants.OUT_OF_MAP_TAG))
+        {
+            ResetSkull();
+        }
+    }
+
+    private void PlayRubberSound()
+    {
+        _rubberSound.Play();
+    }
+
+    private void PlayThrowSound()
+    {
+        _throwSound.Play();
     }
 }
