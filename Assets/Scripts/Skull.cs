@@ -16,12 +16,9 @@ public class Skull : MonoBehaviour
     
     [SerializeField] 
     private TrajectoryRenderer _trajectoryRenderer;
-    
-    [SerializeField]
-    private AudioSource _rubberSound;
-    
-    [SerializeField]
-    private AudioSource _throwSound;
+
+    [SerializeField] 
+    private SkullAudioPlayer _audioPlayer;
 
     [SerializeField] 
     private float _force;
@@ -31,6 +28,7 @@ public class Skull : MonoBehaviour
     
     private Camera _mainCamera;
     private Vector3 _startPosition;
+    private VelocityCalculator _velocityCalculator;
     private bool _isDragging;
     private bool _isFlying;
 
@@ -38,10 +36,13 @@ public class Skull : MonoBehaviour
     {
         _mainCamera = Camera.main;
         _startPosition = transform.position;
+
+        _velocityCalculator = new VelocityCalculator(_mainCamera, _rangeTriggerCollider, _force);
     }
 
     private void Update()
     {
+        // Полет снаряда
         if (_isFlying)
         {
             if (_rigidbody.velocity.magnitude < _minVelocity)
@@ -52,6 +53,7 @@ public class Skull : MonoBehaviour
             return;
         }
         
+        // Начало прицеливания
         if (Input.GetMouseButtonDown(0))
         {
             var mousePosition = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -63,38 +65,18 @@ public class Skull : MonoBehaviour
                 OnDragging?.Invoke(_isDragging);
             }
             
-            PlayRubberSound();
+            _audioPlayer.PlayRubberSound();
         }
         
+        // Прицеливание
         if (_isDragging)
         {
-            var mousePosition = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
-            mousePosition.z = 0;
-            
-            var borderCenter = _rangeTriggerCollider.transform.position;
-            
-            var direction = mousePosition - borderCenter;
-            var distance = direction.magnitude;
+            var velocity = _velocityCalculator.CalculateThrowVelocity(transform);
 
-            var velocity = -direction.normalized * _force;
-
-            if (distance > _rangeTriggerCollider.radius)
-            {
-                direction = direction.normalized * (_rangeTriggerCollider.radius);
-                transform.position = borderCenter + direction;
-
-                velocity *= _rangeTriggerCollider.radius;
-            }
-            else
-            {
-                transform.position = mousePosition;
-
-                velocity *= distance;
-            }
-            
             _trajectoryRenderer.DrawTrajectory(transform.position, velocity);
         }
         
+        // Начало полета
         if (Input.GetMouseButtonUp(0) && _isDragging)
         {
             _isDragging = false;
@@ -104,13 +86,11 @@ public class Skull : MonoBehaviour
             _rigidbody.gravityScale = 1;
 
 
-            var direction = transform.position - _rangeTriggerCollider.transform.position;
-            var velocity = -direction.normalized * (direction.magnitude * _force);
-            _rigidbody.velocity = velocity;
+           _rigidbody.velocity = _velocityCalculator.CalculateThrowVelocity(transform);
 
-            _trajectoryRenderer.HideTrajectory();
+           _trajectoryRenderer.HideTrajectory();
             
-            PlayThrowSound();
+           _audioPlayer.PlayThrowSound();
         }
     }
 
@@ -130,15 +110,5 @@ public class Skull : MonoBehaviour
         {
             ResetSkull();
         }
-    }
-
-    private void PlayRubberSound()
-    {
-        _rubberSound.Play();
-    }
-
-    private void PlayThrowSound()
-    {
-        _throwSound.Play();
     }
 }
