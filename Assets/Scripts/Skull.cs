@@ -59,8 +59,6 @@ public class Skull : MonoBehaviour
 
             if (hitInfo.collider == _skullCollider)
             {
-                //todo Отрефакторить эту часть
-                
                 _isDragging = true;
                 OnDragging?.Invoke(_isDragging);
             }
@@ -99,8 +97,6 @@ public class Skull : MonoBehaviour
         
         if (Input.GetMouseButtonUp(0) && _isDragging)
         {
-            //todo Отрефакторить эту часть
-            
             _isDragging = false;
             _isFlying = true;
             OnDragging?.Invoke(_isDragging);

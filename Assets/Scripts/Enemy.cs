@@ -51,13 +51,10 @@ public class Enemy : MonoBehaviour
 
     private void Die()
     {
-        // Создаем эффект "взрыв" на месте убитого зомби.
         CreateExplosion();
-        // ПРоигрываем звук смерти зомби.
         PlayDeathSound();
         
         EnemyDied?.Invoke();
-        // Разрушаем объект зомби.
         Destroy(gameObject);
     }
 
