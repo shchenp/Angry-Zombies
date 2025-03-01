@@ -28,7 +28,12 @@ public class Enemy : MonoBehaviour
         if (collision.collider.CompareTag(GlobalConstants.SKULL_TAG))
         {
             Die();
-            
+            return;
+        }
+
+        if (IsFlipped())
+        {
+            Die();
             return;
         }
 
@@ -38,15 +43,12 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private void Update()
+    private bool IsFlipped()
     {
         var currentRotation = transform.eulerAngles.z;
         var rotationDifference = Mathf.Abs(Mathf.DeltaAngle(currentRotation, _startRotation));
         
-        if (rotationDifference > _rotationThreshold)
-        {
-            Die();
-        }
+        return rotationDifference > _rotationThreshold;
     }
 
     private void Die()
