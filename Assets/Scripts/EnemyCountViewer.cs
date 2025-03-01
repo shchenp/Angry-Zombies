@@ -6,7 +6,7 @@ public class EnemyCountViewer : MonoBehaviour
     [SerializeField] 
     private TextMeshProUGUI _count;
 
-    public void OnCountChanged(int count)
+    public void SetScore(int count)
     {
         _count.text = count.ToString();
     }
